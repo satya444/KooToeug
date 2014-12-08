@@ -15,8 +15,6 @@ import com.sun.nio.sctp.SctpServerChannel;
 import com.utd.kt.main.AosMain;
 import com.utd.kt.utils.Message;
 import com.utd.kt.utils.NodeDetails;
-import com.utd.kt.vclsrfls.VectorClockLLRFLS;
-
 
 /**
  * @author Dilip
@@ -125,9 +123,8 @@ public class ConnectionManager {
 	 * 
 	 * @param msgToSend
 	 */
-	public static synchronized void sendMessage(Message m, int destId) {
+	public static void sendMessage(Message m, int destId) {
 		// get the connection object from already stored connections in the map
-		System.out.println("SENDING MSG TO "+destId);
 		
 		SctpChannel clientSocket = AosMain.connectionSocket.get(destId);
 		if (clientSocket == null) {
@@ -152,7 +149,7 @@ public class ConnectionManager {
 	 * Function sendMessageSCTP Actual SCTP send
 	 */
 
-	private static synchronized void sendMessageSCTP(SctpChannel clientSock, Message m)
+	private static void sendMessageSCTP(SctpChannel clientSock, Message m)
 			throws IOException {
 
 		ByteBuffer Buffer = ByteBuffer.allocate(10000);
@@ -170,32 +167,13 @@ public class ConnectionManager {
 			clientSock.send(Buffer, messageInfo);
 			System.out.println("SENDING THIS MESSAGE");
 			String msgPrint = "*********************************************";
-			System.out.println("**PIGGYBACK CLOCK**");
-			for(Integer itr : m.getVc().keySet()){
-				System.out.println(itr +" -- "+m.getVc().get(itr));
-			}
-			System.out.println("SEQ NO -- "+m.getSeqNo());
 			System.out.println(msgPrint);
 
-			
-			printVectors();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static synchronized void printVectors() {
-		System.out.println("**FLS VALUES **");
-		for(Integer itr : VectorClockLLRFLS.fls.keySet()){
-			System.out.println(itr +" -- "+VectorClockLLRFLS.fls.get(itr));
-		}
-		System.out.println("**LLR VALUES**");
-		for(Integer itr : VectorClockLLRFLS.llr.keySet()){
-			System.out.println(itr +" -- "+VectorClockLLRFLS.llr.get(itr));
-		}
-		
 	}
 
 	public static byte[] serialize(Object obj) throws IOException {

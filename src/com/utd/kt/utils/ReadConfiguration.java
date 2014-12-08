@@ -5,9 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-
 import com.utd.kt.main.AosMain;
 
 
@@ -52,15 +49,4 @@ public class ReadConfiguration {
 		}
 	}
 	
-	/**
-	 * This reads input configuration file and populates the senders queue
-	 * 
-	 * @param inpuFile : pass entire filepath as argument
-	 * @param myNodeId : pass current Nodeid as input argument
-	 */
-	public static void readInputConfiguration(String inputFile){
-	
-		
-	}
-
 }

@@ -1,72 +1,108 @@
 package com.utd.kt.sendreceivecheckpoint;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 
+import com.utd.kt.VcLlrFlc.VectorLlrFlsLls;
 import com.utd.kt.main.AosMain;
 import com.utd.kt.networkprotocol.ConnectionManager;
 import com.utd.kt.utils.Message;
 import com.utd.kt.utils.RandomNumberGenerator;
-import com.utd.kt.vclsrfls.VectorClockLLRFLS;
 
 public class Sender {
 
-	public Map<Integer, Integer> seqNoMap = new HashMap<>();
-
-	public void invokeAllSends() {
-		populateSeqNoMap();
-		int i = 0;
-		while (i < 4) {
-			synchronized (SendReceiveCheckpoint.obj) {
-				int destId = RandomNumberGenerator.getRandom();
-				int myclock = VectorClockLLRFLS.vc.get(AosMain.myNodeId);
-				myclock = myclock + 1;
-				VectorClockLLRFLS.vc.put(AosMain.myNodeId, myclock);
-				int currSeqNo = seqNoMap.get(destId);
-				currSeqNo++;
-				seqNoMap.put(destId, currSeqNo);
-
-				// Update FLS if this is the first message after taking
-				// CheckPoint
-
-				int flsVal = VectorClockLLRFLS.fls.get(destId);
-				if (flsVal == 0) {
-					flsVal = currSeqNo;
-					VectorClockLLRFLS.fls.put(destId, flsVal);
-				}
-				Message m = new Message(currSeqNo, VectorClockLLRFLS.vc, 0,
+	public static void initiateSends() {
+		while (true) {
+			int destId = RandomNumberGenerator.generateRandomNumber();
+			int seqNo = VectorLlrFlsLls.seqNo.get(destId);
+			seqNo++;
+			synchronized (CheckpointSendReceive.obj) {
+				int myclock = VectorLlrFlsLls.vc.get(AosMain.myNodeId);
+				myclock++;
+				VectorLlrFlsLls.vc.put(AosMain.myNodeId, myclock);
+				Message m = new Message(seqNo, VectorLlrFlsLls.vc, 0,
 						AosMain.myNodeId);
-
+				m.addMe(AosMain.myNodeId);
+				
 				ConnectionManager.sendMessage(m, destId);
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			}
+		}
+
+	}
+
+	public void sendLls() {
+
+		synchronized(CheckpointSendReceive.obj){
+			int myClk= VectorLlrFlsLls.vc.get(AosMain.myNodeId);
+			myClk++;
+			VectorLlrFlsLls.vc.put(AosMain.myNodeId, myClk);
+			
+			Message m= new Message(0,VectorLlrFlsLls.vc,2,AosMain.myNodeId);
+			Iterator<Integer> itr= AosMain.neighbors.iterator();
+			while(itr.hasNext()){
+				int nextAddr= itr.next();
+				if(VectorLlrFlsLls.lls.get(nextAddr)!=0){
+					m.setLlrVal(VectorLlrFlsLls.lls.get(nextAddr));
+					ConnectionManager.sendMessage(m, nextAddr);
 				}
-				i++;
 			}
 		}
 	}
 
-	public void sendllr(){
-		Iterator<Integer> itr= AosMain.neighborIds.iterator();
-		while(itr.hasNext()){
-			Integer nextAddr= itr.next();
-			int myclock = VectorClockLLRFLS.vc.get(AosMain.myNodeId);
-			myclock = myclock + 1;
-			VectorClockLLRFLS.vc.put(AosMain.myNodeId, myclock);
-			Message m= new Message(0,VectorClockLLRFLS.vc,1,AosMain.myNodeId);
-			Integer llrVal= VectorClockLLRFLS.llr.get(nextAddr);
-			m.setLlrSendVal(llrVal);
-			ConnectionManager.sendMessage(m,nextAddr);
+	public void sendLlr() {
+
+		synchronized(CheckpointSendReceive.obj){
+			int myClk= VectorLlrFlsLls.vc.get(AosMain.myNodeId);
+			myClk++;
+			VectorLlrFlsLls.vc.put(AosMain.myNodeId, myClk);
+			Iterator<Integer> itr= AosMain.neighbors.iterator();
+			while(itr.hasNext()){
+				int nextAddr= itr.next();
+				if(VectorLlrFlsLls.llr.get(nextAddr)!=0){
+					Message m= new Message(0,VectorLlrFlsLls.vc,1,AosMain.myNodeId);
+					m.setLlrVal(VectorLlrFlsLls.llr.get(nextAddr));
+					ConnectionManager.sendMessage(m, nextAddr);
+				}
+			}
 		}
 	}
-	public void populateSeqNoMap() {
-		Iterator<Integer> itr = AosMain.neighborIds.iterator();
-		while (itr.hasNext()) {
-			seqNoMap.put(itr.next(), 0);
+
+	public static void sendLlsToRest(HashSet<Integer> destIds) {
+
+		synchronized(CheckpointSendReceive.obj){
+			int myClk= VectorLlrFlsLls.vc.get(AosMain.myNodeId);
+			myClk++;
+			VectorLlrFlsLls.vc.put(AosMain.myNodeId, myClk);
+			Iterator<Integer> itr= AosMain.neighbors.iterator();
+			while(itr.hasNext()){
+				int nextAddr= itr.next();
+				if(!destIds.contains(nextAddr)){
+					Message m= new Message(0,VectorLlrFlsLls.vc,2,AosMain.myNodeId);
+					m.addAll(destIds);
+					m.addMe(AosMain.myNodeId);
+					m.setLlsVal(VectorLlrFlsLls.lls.get(nextAddr));
+					ConnectionManager.sendMessage(m, nextAddr);
+				}
+			}
+		}
+	}
+
+	public static void sendLlrToRest(HashSet<Integer> destIds) {
+		synchronized(CheckpointSendReceive.obj){
+			int myClk= VectorLlrFlsLls.vc.get(AosMain.myNodeId);
+			myClk++;
+			VectorLlrFlsLls.vc.put(AosMain.myNodeId, myClk);
+			Iterator<Integer> itr= AosMain.neighbors.iterator();
+			while(itr.hasNext()){
+				int nextAddr= itr.next();
+				if(!destIds.contains(nextAddr)){
+					Message m= new Message(0,VectorLlrFlsLls.vc,1,AosMain.myNodeId);
+					m.addAll(destIds);
+					m.addMe(AosMain.myNodeId);
+					m.setLlrVal(VectorLlrFlsLls.llr.get(nextAddr));
+					ConnectionManager.sendMessage(m, nextAddr);
+				}
+			}
 		}
 	}
 

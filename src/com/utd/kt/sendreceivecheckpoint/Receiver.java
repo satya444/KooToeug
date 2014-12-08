@@ -7,18 +7,19 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import com.sun.nio.sctp.SctpChannel;
+import com.utd.kt.VcLlrFlc.VectorLlrFlsLls;
 import com.utd.kt.main.AosMain;
-import com.utd.kt.networkprotocol.ConnectionManager;
+import com.utd.kt.utils.FileFeatures;
 import com.utd.kt.utils.Message;
-import com.utd.kt.vclsrfls.VectorClockLLRFLS;
 
 public class Receiver {
 
-	public synchronized void receive() {
+	public static void receive() {
 		ByteBuffer byteBuffer = ByteBuffer.allocate(10000);
 		try {
 			while (true) {
-				synchronized (SendReceiveCheckpoint.obj) {
+				Thread.sleep(1000);
+				synchronized (CheckpointSendReceive.obj) {
 					for (int id : AosMain.connectionSocket.keySet()) {
 						SctpChannel schnl = AosMain.connectionSocket.get(id);
 
@@ -26,50 +27,46 @@ public class Receiver {
 						schnl.configureBlocking(false);
 						schnl.receive(byteBuffer, null, null);
 						byteBuffer.flip();
-
 						if (byteBuffer.remaining() > 0) {
 							Message receivedMsg = (Message) deserialize(byteBuffer
 									.array());
+							int myclk = VectorLlrFlsLls.vc
+									.get(AosMain.myNodeId);
+							myclk++;
+							VectorLlrFlsLls.vc.put(AosMain.myNodeId, myclk);
 							if (receivedMsg.getMsgType() == 0) {
-								System.out.println("RECEIVED MSG FROM "
-										+ receivedMsg.getSrcId());
-								Map<Integer, Integer> rcdVc = receivedMsg
-										.getVc();
-								for (Integer itr : VectorClockLLRFLS.vc
-										.keySet()) {
-									int rvdclkVal = rcdVc.get(itr);
-									int myclkVal = VectorClockLLRFLS.vc
-											.get(itr);
-									int maxClk = Math.max(rvdclkVal, myclkVal);
-									VectorClockLLRFLS.vc.put(itr, maxClk);
+								for (Integer itr : VectorLlrFlsLls.vc.keySet()) {
+									int destClk = VectorLlrFlsLls.vc.get(itr);
+									Map<Integer, Integer> rcdVcClk = receivedMsg
+											.getVc();
+									int rcdClk = rcdVcClk.get(itr);
+									int max = Math.max(destClk, rcdClk);
+									VectorLlrFlsLls.vc.put(itr, max);
 								}
-								int myClk = VectorClockLLRFLS.vc
-										.get(AosMain.myNodeId);
-								myClk++;
-								VectorClockLLRFLS.vc.put(AosMain.myNodeId,
-										myClk);
-								int llrVal = receivedMsg.getSeqNo();
-								VectorClockLLRFLS.llr.put(
-										receivedMsg.getSrcId(), llrVal);
-								ConnectionManager.printVectors();
-								System.out.println("** MY CLOCK **");
-								for (Integer itr : VectorClockLLRFLS.vc
-										.keySet()) {
-									System.out.println(itr + " -- "
-											+ VectorClockLLRFLS.vc.get(itr));
+							} else if (receivedMsg.getMsgType() == 1) {
+								int myFls = VectorLlrFlsLls.fls.get(receivedMsg
+										.getSrcId());
+								int rcdLlr = VectorLlrFlsLls.llr
+										.get(receivedMsg.getSrcId());
+								if (rcdLlr >= myFls && myFls != 0) {
+									System.out.println("TAKING SNAPSHOT");
+									FileFeatures.writeAll();
+									Sender.sendLlrToRest(receivedMsg
+											.getAllSources());
+									VectorLlrFlsLls.reset();
 								}
-							}
-							else{
-								int myClk = VectorClockLLRFLS.vc
-										.get(AosMain.myNodeId);
-								myClk++;
-								VectorClockLLRFLS.vc.put(AosMain.myNodeId,
-										myClk);
-								int rcvdllr= receivedMsg.getLlrSendVal();
-								int myfls= VectorClockLLRFLS.fls.get(receivedMsg.getSrcId());
-								if(rcvdllr>=myfls && myfls!=0){
+							} else if (receivedMsg.getMsgType() == 2) {
+								int myllr = VectorLlrFlsLls.llr.get(receivedMsg
+										.getSrcId());
+								int rcdLls = VectorLlrFlsLls.lls
+										.get(receivedMsg.getSrcId());
+								if (myllr > rcdLls) {
+									System.out.println("ROLLBACK STARTED");
 									
-									//code to send llr to other neighbors
+									FileFeatures.writeAll();
+									Sender.sendLlsToRest(receivedMsg
+											.getAllSources());
+									VectorLlrFlsLls.reset();
 								}
 							}
 							byteBuffer.clear();
@@ -81,10 +78,13 @@ public class Receiver {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
-	public Object deserialize(byte[] array) {
+	public static Object deserialize(byte[] array) {
 		ObjectInputStream ois;
 		ByteArrayInputStream bis = new ByteArrayInputStream(array);
 		try {
@@ -99,4 +99,5 @@ public class Receiver {
 		}
 		return 0;
 	}
+
 }
