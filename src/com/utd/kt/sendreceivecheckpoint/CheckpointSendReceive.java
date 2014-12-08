@@ -49,19 +49,29 @@ public class CheckpointSendReceive implements Runnable {
 	}
 
 	public static void print(){
+		synchronized (obj) {
+		System.out.println("VECTOR CLOCK");	
 		for(Integer itr :VectorLlrFlsLls.vc.keySet()){
 			System.out.println(itr +" "+VectorLlrFlsLls.vc.get(itr));
 			
 		}
 		System.out.println("************************************");
+		System.out.println("FLS ");
 		for(Integer itr : VectorLlrFlsLls.fls.keySet()){
 			System.out.println(itr +" "+VectorLlrFlsLls.fls.get(itr));
 		}
+		System.out.println("************************************");
+		System.out.println("LLR");
 		for(Integer itr : VectorLlrFlsLls.llr.keySet()){
 			System.out.println(itr+ " "+VectorLlrFlsLls.llr.get(itr));
 		}
+		System.out.println("************************************");
+		/*System.out.println("LLS");
 		for(Integer itr : VectorLlrFlsLls.lls.keySet()){
 			System.out.println(itr+" "+VectorLlrFlsLls.lls.get(itr));
+		}
+		System.out.println("************************************");
+		*/
 		}
 	}
 }

@@ -14,21 +14,27 @@ public class Sender {
 	public static void initiateSends() {
 		while (true) {
 			int destId = RandomNumberGenerator.generateRandomNumber();
+			
+			synchronized (CheckpointSendReceive.obj) {
 			int seqNo = VectorLlrFlsLls.seqNo.get(destId);
 			seqNo++;
-			synchronized (CheckpointSendReceive.obj) {
+			VectorLlrFlsLls.seqNo.put(destId,seqNo);
+			
 				int myclock = VectorLlrFlsLls.vc.get(AosMain.myNodeId);
 				myclock++;
 				VectorLlrFlsLls.vc.put(AosMain.myNodeId, myclock);
 				Message m = new Message(seqNo, VectorLlrFlsLls.vc, 0,
 						AosMain.myNodeId);
 				m.addMe(AosMain.myNodeId);
-				
+				int flsVal= VectorLlrFlsLls.fls.get(destId);
+				if(flsVal==0){
+					VectorLlrFlsLls.fls.put(destId, seqNo);
+				}
 				ConnectionManager.sendMessage(m, destId);
 				CheckpointSendReceive.print();
 				System.out.println("********************************************");
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(2000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -51,6 +57,7 @@ public class Sender {
 				int nextAddr= itr.next();
 				if(VectorLlrFlsLls.lls.get(nextAddr)!=0){
 					m.setLlrVal(VectorLlrFlsLls.lls.get(nextAddr));
+					m.addMe(AosMain.myNodeId);
 					ConnectionManager.sendMessage(m, nextAddr);
 				}
 			}
@@ -69,6 +76,7 @@ public class Sender {
 				if(VectorLlrFlsLls.llr.get(nextAddr)!=0){
 					Message m= new Message(0,VectorLlrFlsLls.vc,1,AosMain.myNodeId);
 					m.setLlrVal(VectorLlrFlsLls.llr.get(nextAddr));
+					m.addMe(AosMain.myNodeId);
 					ConnectionManager.sendMessage(m, nextAddr);
 				}
 			}

@@ -18,8 +18,8 @@ public class Receiver {
 		ByteBuffer byteBuffer = ByteBuffer.allocate(10000);
 		try {
 			while (true) {
-				Thread.sleep(1000);
 				synchronized (CheckpointSendReceive.obj) {
+				//Thread.sleep(1000);
 					for (int id : AosMain.connectionSocket.keySet()) {
 						SctpChannel schnl = AosMain.connectionSocket.get(id);
 
@@ -34,14 +34,18 @@ public class Receiver {
 									.get(AosMain.myNodeId);
 							myclk++;
 							VectorLlrFlsLls.vc.put(AosMain.myNodeId, myclk);
+							//System.out.println("RECEIVED MSG FROM "+receivedMsg.getSrcId());
 							if (receivedMsg.getMsgType() == 0) {
+								Map<Integer, Integer> rcdVcClk = receivedMsg
+										.getVc();
 								for (Integer itr : VectorLlrFlsLls.vc.keySet()) {
 									int destClk = VectorLlrFlsLls.vc.get(itr);
-									Map<Integer, Integer> rcdVcClk = receivedMsg
-											.getVc();
 									int rcdClk = rcdVcClk.get(itr);
 									int max = Math.max(destClk, rcdClk);
 									VectorLlrFlsLls.vc.put(itr, max);
+									int llrVal= receivedMsg.getSeqNo();
+									VectorLlrFlsLls.llr.put(receivedMsg.getSrcId(), llrVal);
+									//CheckpointSendReceive.print();
 								}
 							} else if (receivedMsg.getMsgType() == 1) {
 								int myFls = VectorLlrFlsLls.fls.get(receivedMsg
@@ -52,8 +56,10 @@ public class Receiver {
 									System.out.println("TAKING SNAPSHOT");
 									FileFeatures.writeAll();
 									CheckpointSendReceive.print();
+									
 									Sender.sendLlrToRest(receivedMsg
 											.getAllSources());
+									
 									VectorLlrFlsLls.reset();
 								}
 							} else if (receivedMsg.getMsgType() == 2) {
@@ -68,8 +74,8 @@ public class Receiver {
 											.getAllSources());
 								}
 							}
-							Thread.sleep(100000);
 							byteBuffer.clear();
+							Thread.sleep(1000);
 						}
 					}
 					// System.out.println("OUT OF FOR LOOP*****************");

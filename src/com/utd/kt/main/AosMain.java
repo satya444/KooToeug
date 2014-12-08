@@ -27,11 +27,11 @@ public class AosMain {
 	public static String outCheckPointFile;
 	public static void main(String args[]){
 		myNodeId= Integer.parseInt(args[0]);
-		outFlsfile= "/home/kooToeug/"+myNodeId+"/outFls.txt";
-		outLlrfile= "/home/kooToeug/"+myNodeId+"/outLlr.txt";
-		outLlsfile= "/home/kooToeug/"+myNodeId+"/outLls.txt";
-		outVcFile= "/home/kooToeug/"+myNodeId+"/outVc.txt";
-		outCheckPointFile= "/home/kooToeug/"+myNodeId+"/outCheckPoint.txt";
+		outFlsfile= "/home/dilip/kooToeug/"+myNodeId+"/outFls.txt";
+		outLlrfile= "/home/dilip/kooToeug/"+myNodeId+"/outLlr.txt";
+		outLlsfile= "/home/dilip/kooToeug/"+myNodeId+"/outLls.txt";
+		outVcFile= "/home/dilip/kooToeug/"+myNodeId+"/outVc.txt";
+		outCheckPointFile="/home/dilip/kooToeug/"+myNodeId+"/outCheckPoint.txt";
 		ReadConfiguration.readBasicConfiguration(AllConstants.basicConfigFile);
 		VectorLlrFlsLls.vc.put(1, 0);
 		VectorLlrFlsLls.vc.put(2, 0);

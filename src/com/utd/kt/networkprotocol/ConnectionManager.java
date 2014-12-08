@@ -131,14 +131,15 @@ public class ConnectionManager {
 			System.out
 					.println("Connection Manager can't get the SCTP Channel object for Recipeint Node Id "
 							+ destId + " in theconnection Map.");
-			System.out.println("SENDING THIS MESSAGE TO "+ destId);
-			String msgPrint = "*********************************************";
-			System.out.println(msgPrint);
+			
 			return;
 		}
 
 		try {
 
+			System.out.println("SENDING THIS MESSAGE TO "+ destId);
+			String msgPrint = "*********************************************";
+			System.out.println(msgPrint);
 			sendMessageSCTP(clientSocket, m);
 
 		} catch (IOException e) {
