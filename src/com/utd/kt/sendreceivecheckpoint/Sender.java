@@ -25,12 +25,20 @@ public class Sender {
 				m.addMe(AosMain.myNodeId);
 				
 				ConnectionManager.sendMessage(m, destId);
+				CheckpointSendReceive.print();
+				System.out.println("********************************************");
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 
 	}
 
-	public void sendLls() {
+	public static void sendLls() {
 
 		synchronized(CheckpointSendReceive.obj){
 			int myClk= VectorLlrFlsLls.vc.get(AosMain.myNodeId);
@@ -49,7 +57,7 @@ public class Sender {
 		}
 	}
 
-	public void sendLlr() {
+	public static void sendLlr() {
 
 		synchronized(CheckpointSendReceive.obj){
 			int myClk= VectorLlrFlsLls.vc.get(AosMain.myNodeId);

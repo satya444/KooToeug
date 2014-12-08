@@ -7,9 +7,9 @@ import com.utd.kt.main.AosMain;
 
 public class RandomNumberGenerator {
 
+	private static int size= AosMain.neighbors.size();
 	public static int generateRandomNumber(){
-		Random r= new Random();
-		int randomNum= r.nextInt(AosMain.neighbors.size());
-		return AosMain.neighbors.get(randomNum);
+		int rnd = new Random().nextInt(size);;
+		return AosMain.neighbors.get(rnd);
 	}
 }

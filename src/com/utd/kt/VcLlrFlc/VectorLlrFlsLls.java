@@ -32,10 +32,11 @@ public class VectorLlrFlsLls {
 	}
 	public static void recoverRollback(HashSet<Integer> ids){
 		synchronized (CheckpointSendReceive.obj) {
-			FileFeatures.writeAll();
 			reset();
 			vc.clear();
 			vc.putAll(checkPointVc);
+			FileFeatures.writeAll();
+			CheckpointSendReceive.print();
 			Sender.sendLlsToRest(ids);
 		}
 	}

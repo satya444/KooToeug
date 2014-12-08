@@ -51,6 +51,7 @@ public class Receiver {
 								if (rcdLlr >= myFls && myFls != 0) {
 									System.out.println("TAKING SNAPSHOT");
 									FileFeatures.writeAll();
+									CheckpointSendReceive.print();
 									Sender.sendLlrToRest(receivedMsg
 											.getAllSources());
 									VectorLlrFlsLls.reset();
@@ -62,13 +63,12 @@ public class Receiver {
 										.get(receivedMsg.getSrcId());
 								if (myllr > rcdLls) {
 									System.out.println("ROLLBACK STARTED");
-									
-									FileFeatures.writeAll();
+									VectorLlrFlsLls.recoverRollback(receivedMsg.getAllSources());
 									Sender.sendLlsToRest(receivedMsg
 											.getAllSources());
-									VectorLlrFlsLls.reset();
 								}
 							}
+							Thread.sleep(100000);
 							byteBuffer.clear();
 						}
 					}
