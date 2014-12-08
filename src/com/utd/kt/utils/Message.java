@@ -55,7 +55,12 @@ public class Message implements Serializable{
 		this.msgType=msgType;
 		this.srcId=srcId;
 	}
-	public Message(){
-		
+	private int sendClk;
+	public int getSendClk() {
+		return sendClk;
+	}
+	public Message(int sendClk,int srcId){
+		this.srcId=srcId;
+		this.sendClk=sendClk;
 	}
 }

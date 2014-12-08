@@ -19,7 +19,6 @@ public class Sender {
 			int seqNo = VectorLlrFlsLls.seqNo.get(destId);
 			seqNo++;
 			VectorLlrFlsLls.seqNo.put(destId,seqNo);
-			
 				int myclock = VectorLlrFlsLls.vc.get(AosMain.myNodeId);
 				myclock++;
 				VectorLlrFlsLls.vc.put(AosMain.myNodeId, myclock);
@@ -55,11 +54,9 @@ public class Sender {
 			Iterator<Integer> itr= AosMain.neighbors.iterator();
 			while(itr.hasNext()){
 				int nextAddr= itr.next();
-				if(VectorLlrFlsLls.lls.get(nextAddr)!=0){
-					m.setLlrVal(VectorLlrFlsLls.lls.get(nextAddr));
+					m.setLlsVal(VectorLlrFlsLls.lls.get(nextAddr));
 					m.addMe(AosMain.myNodeId);
 					ConnectionManager.sendMessage(m, nextAddr);
-				}
 			}
 		}
 	}

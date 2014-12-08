@@ -53,14 +53,20 @@ public class Receiver {
 								int rcdLlr = VectorLlrFlsLls.llr
 										.get(receivedMsg.getSrcId());
 								if (rcdLlr >= myFls && myFls != 0) {
-									System.out.println("TAKING SNAPSHOT");
+									System.out.println("TAKING CHECKPOINT");
+									VectorLlrFlsLls.checkPointVc.clear();
+									VectorLlrFlsLls.checkPointVc.putAll(VectorLlrFlsLls.vc);
+									VectorLlrFlsLls.lls.clear();
+									VectorLlrFlsLls.lls.putAll(VectorLlrFlsLls.seqNo);
 									FileFeatures.writeAll();
 									CheckpointSendReceive.print();
 									
 									Sender.sendLlrToRest(receivedMsg
 											.getAllSources());
-									
 									VectorLlrFlsLls.reset();
+								}
+								else{
+									//FileFeatures.writeAll();
 								}
 							} else if (receivedMsg.getMsgType() == 2) {
 								int myllr = VectorLlrFlsLls.llr.get(receivedMsg
@@ -72,6 +78,9 @@ public class Receiver {
 									VectorLlrFlsLls.recoverRollback(receivedMsg.getAllSources());
 									Sender.sendLlsToRest(receivedMsg
 											.getAllSources());
+								}
+								else{
+									//FileFeatures.writeAll();
 								}
 							}
 							byteBuffer.clear();

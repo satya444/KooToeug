@@ -35,6 +35,7 @@ public class VectorLlrFlsLls {
 			reset();
 			vc.clear();
 			vc.putAll(checkPointVc);
+			
 			FileFeatures.writeAll();
 			CheckpointSendReceive.print();
 			Sender.sendLlsToRest(ids);
